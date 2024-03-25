@@ -31,10 +31,12 @@ void send_cmd(const char * fs, std::string cmd) {
     cmd = cmd.substr(0, cmd.size() - 1);
     fd = open(fs, O_WRONLY); 
 
+
     // it should send right even if i don't add null terminator but still better safe than sorry
     cmd += '\0';
 
     write(fd, cmd.c_str(), cmd.size() + 1); 
+
     close(fd); 
 } 
 
@@ -46,15 +48,19 @@ void get_response(const char * fs) {
     char arr2[1024];
     read(fd, arr2, sizeof(arr2));
     close(fd);
-
+    
     std::cout << arr2;
 }
 
+
 int main(int argc, char **argv) {
     std::string arr; 
-
     for(int i = 1; i < argc; i++) {
         arr += std::string(argv[i]) + " ";
+        if(std::string(argv[i]) == "help") {
+            arr += argv[0] ;
+            arr += " ";
+        }
     }
 
     std::string fs = "/tmp/check_charge";

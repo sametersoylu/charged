@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <thread>
 
+std::string program_name; 
+
 bool isNum(std::string str) { 
     for(char ch : str) 
         if(ch < '0' || ch > '9') 
@@ -20,8 +22,44 @@ std::string operator""_str(const char * str, size_t) {
     return {str}; 
 }
 
+std::string help(std::string programname) {
+    return std::format(
+        "Help:\n"
+        "{} -ll/--low-level <value> : Set the low battery threshold level\n"
+        "    -ll <value> : Sets the level at which low battery notifications will be sent\n"
+        "{} -cl/--critical-level <value> : Set the critical battery threshold level\n"
+        "    -cl <value> : Sets the level at which critical battery notifications will be sent\n"
+        "{} -h/--help : Print this help text\n"
+        "    -h : Prints detailed information about available command-line options\n"
+        , programname, programname, programname
+    );
+}
+
+std::string help_dispatch(std::string dispatchname) {
+    return std::format(
+        "Help:\n"
+        "{} get <sub: charge level | low level | critical level> : Get current or threshold battery levels\n"
+        "    {} get charge level : Prints the current battery charge level\n"
+        "    {} get low level : Prints the threshold level for low battery notifications\n"
+        "    {} get critical level : Prints the threshold level for critical battery notifications\n"
+        "{} set <sub: low level | critical level> <value> : Set threshold battery levels\n"
+        "    {} set low level <value> : Sets the threshold level for low battery notifications\n"
+        "    {} set critical level <value> : Sets the threshold level for critical battery notifications\n"
+        "{} is <sub: charging | full> : Check battery status\n"
+        "    {} is charging : Prints the current charging status\n"
+        "    {} is full : Prints whether the battery is fully charged\n"
+        , dispatchname, dispatchname, dispatchname, dispatchname, dispatchname, dispatchname, dispatchname, dispatchname, dispatchname, dispatchname
+    );
+}
+
+
 std::string handle_command(std::string inp) {
     std::stringstream ss; 
+    if(inp.find("help") != -1) {
+        auto res = inp.substr(5); 
+        ss << help_dispatch(res) << std::endl; 
+        return ss.str(); 
+    }
     if(inp == "get charge level") {
         ss << ChargeCheck::instance->charge << std::endl;
         return ss.str();
@@ -44,6 +82,7 @@ std::string handle_command(std::string inp) {
         ss << (ChargeCheck::instance->is_full ? "Yes" : "No") << std::endl; 
         return ss.str(); 
     }
+#ifdef DEBUG
     if(inp == "get status cnotified") {
         ss << (ChargeCheck::instance->cnotified ? "Yes" : "No") << std::endl;
         return ss.str();
@@ -52,6 +91,7 @@ std::string handle_command(std::string inp) {
         ss << (ChargeCheck::instance->lnotified ? "Yes" : "No") << std::endl;
         return ss.str();
     }
+#endif
     if(inp == "stop") {
         ChargeCheck::instance->stop = true;
         ss << "Waiting for the subprocess to die." << std::endl;
@@ -86,7 +126,7 @@ std::string handle_command(std::string inp) {
         ss << "ok" << std::endl;
         return ss.str();
     }
-    return "Command not found.\n";
+    return "Command \"" + inp +  "\" not found.\n";
 }
 
 
@@ -107,7 +147,7 @@ void get() {
         auto res = handle_command(inp);
 
         fd = open(fs.c_str(), O_WRONLY);
-        write(fd, res.c_str(), res.size()); 
+        write(fd, res.c_str(), res.size() + 1); 
         close(fd);
         if(inp == "stop") {
             exit(1);
@@ -116,7 +156,7 @@ void get() {
 }
 
 ChargeCheckVars arghandler(int argc, char ** argv) {
-    std::string program_name = argv[0]; 
+    program_name = argv[0]; 
     std::vector<std::string> argList; 
     unsigned short cl = 0, ll = 0; 
     if(argc < 2) {
@@ -129,10 +169,22 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
     for(int i = 0; i < argList.size(); i++) {
         if((argList[i] == "-cl" || argList[i] == "--critical-level") && argc > i+1 && isNum(argList[i+1])) {
             cl = std::stoi(argList[i+1]); 
+            continue;
         }
         if((argList[i] == "-ll" || argList[i] == "--low-level")&& argc > i+1 && isNum(argList[i+1])) {
             ll = std::stoi(argList[i+1]);
+            continue;
         }
+        if((argList[i] == "-h" || argList[i] == "--help")) {
+            std::cout << help(program_name);
+            exit(0);
+            continue;
+        }
+        if(argList[i] == std::to_string(ll) or argList[i] == std::to_string(cl)) {
+            continue;
+        }
+        std::cout << "Unknow argument " << argList[i]; 
+        exit(1);
     }
     if(ll == 0) {
         ll = 25; 
