@@ -11,10 +11,11 @@ class ChargeCheckVars {
     public:
     int critical_level; 
     int low_level;
+    int full_level; 
     unsigned short charge; 
     bool is_charging; 
     bool is_full;
-    bool cnotified, lnotified;
+    bool cnotified, lnotified, inotified;
     bool stop; 
 };
 
@@ -55,6 +56,7 @@ class ChargeCheck {
         FunctionWrapper<void, int*, std::string> f1(&cat, pipefd, "status");
         FunctionWrapper<std::string, int*, std::string> f2(&rread, pipefd, ""); 
         auto res = (f(f2, f1));
+        res = res.substr(0, res.find("ing") + 3); 
         instance->is_charging = res == "Charging"; 
         
         return res;
@@ -73,16 +75,19 @@ class ChargeCheck {
     static void update() {
         while(!instance->stop) {
             using namespace std::chrono_literals;
-            instance->is_full = instance->charge >= 100; 
+            instance->is_full = instance->charge >= instance->full_level; 
+
             critical(getCharge() <= instance->critical_level); 
-            if(instance->charge > instance->critical_level) {
-                instance->cnotified = false;
-            }
+            instance->cnotified = !(instance->charge > instance->critical_level);
+
             low(getCharge() <= instance->low_level); 
-            if(instance->charge > instance->low_level) {
-                instance->lnotified = false; 
-            }
+            instance->lnotified = !(instance->charge > instance->low_level);
+
+            full();
+            instance->is_full = !(instance->charge < instance->full_level); 
+
             isCharging();
+
             std::this_thread::sleep_for(10000ms);
         }
     }
@@ -92,6 +97,7 @@ class ChargeCheck {
     }
 
     static void critical(bool is_critical) {
+        static bool notified = false; 
         if(is_critical && !instance->cnotified) {
             Fork f; 
             FunctionWrapper<void, std::string, std::string> f1(send_notify, "Critical Battery Level", "You have to plug your charger.");
@@ -108,4 +114,15 @@ class ChargeCheck {
         }
     }
 
+    static void full() {
+        if(instance->is_full && !instance->inotified) {
+            Fork f; 
+            std::string text = "Charge is " + std::to_string(instance->charge) + ", you can unplug your computer.";
+            FunctionWrapper<void, std::string, std::string> f1(send_notify, "Battery reached the full threshold", text.c_str()); 
+            f(f1); 
+            instance->inotified = true; 
+        }
+    }
 }; 
+
+
