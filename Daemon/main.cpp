@@ -86,7 +86,7 @@ std::string handle_command(std::string inp) {
         ss << "ok" << std::endl;
         return ss.str();
     }
-    return "";
+    return "Command not found.";
 }
 
 
