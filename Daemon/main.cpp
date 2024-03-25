@@ -127,10 +127,10 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
     }
 
     for(int i = 0; i < argList.size(); i++) {
-        if(argList[i] == "-cl" && argc > i+1 && isNum(argList[i+1])) {
+        if((argList[i] == "-cl" || argList[i] == "--critical-level") && argc > i+1 && isNum(argList[i+1])) {
             cl = std::stoi(argList[i+1]); 
         }
-        if(argList[i] == "-ll" && argc > i+1 && isNum(argList[i+1])) {
+        if((argList[i] == "-ll" || argList[i] == "--low-level")&& argc > i+1 && isNum(argList[i+1])) {
             ll = std::stoi(argList[i+1]);
         }
     }
