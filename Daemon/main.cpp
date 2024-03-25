@@ -65,6 +65,7 @@ std::string help_dispatch(std::string dispatchname) {
         "{} is <sub: charging | full> : Check battery status\n"
         "    {} is charging : Prints the current charging status\n"
         "    {} is full : Prints whether the battery is fully charged\n"
+        "{} stop : stops the daemon"
         , dispatchname
     );
 }
@@ -221,7 +222,8 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
             exit(0);
             continue;
         }
-        if(argList[i] == std::to_string(ll) or argList[i] == std::to_string(cl)) {
+        // todo: refactor this part
+        if(argList[i] == std::to_string(ll) or argList[i] == std::to_string(cl) or argList[i] == std::to_string(fl)) {
             continue;
         }
         std::cout << "Unknow argument " << argList[i]; 
@@ -232,6 +234,9 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
     }
     if(cl == 0) {
         cl = 20;
+    }
+    if(fl == 0) {
+        fl = 100; 
     }
     return {cl, ll, fl}; 
 }
