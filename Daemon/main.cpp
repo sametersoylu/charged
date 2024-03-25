@@ -65,7 +65,7 @@ std::string help_dispatch(std::string dispatchname) {
         "{} is <sub: charging | full> : Check battery status\n"
         "    {} is charging : Prints the current charging status\n"
         "    {} is full : Prints whether the battery is fully charged\n"
-        "{} stop : stops the daemon"
+        "{} stop : stops the daemon\n"
         , dispatchname
     );
 }
