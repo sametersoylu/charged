@@ -18,11 +18,16 @@ cmake --build .
 After building you should copy the executable to 
 
 ## Usage 
-After running charged (daemon), you can use dispatcher to get charge value or set critical level value to get notification as a reminder to plug your laptop to ac. 
 ```
-chargec get charge 
-chargec set critical <val>
-chargec get critical
+charger -cl 20 -ll 25 # cl stands for critical level, ll stands for low level
+```
+After running charger (daemon), you can use dispatcher to get charge value or set critical level value to get notification as a reminder to plug your laptop to ac.
+```
+charged get charge level
+charged set critical level <val>
+charged get critical level
+charged set low level <val>
+charged get low level
 ```
 
 
