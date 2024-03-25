@@ -45,7 +45,7 @@ void get_response(const char * fs) {
 
     fd = open(fs, O_RDONLY);
 
-    char arr2[1024];
+    char arr2[2048];
     read(fd, arr2, sizeof(arr2));
     close(fd);
     
