@@ -110,10 +110,10 @@ std::string handle_command(std::string inp) {
         return command_call(FunctionWrapper<std::string, std::string>(help_dispatch, std::move(res)));
     }
     if(inp == "get charge level") {
-        return std::to_string(ChargeCheck::variables->charge); 
+        return command_call(ChargeCheck::variables->charge); 
     }
     if(inp == "get critical level") {
-        return std::to_string(ChargeCheck::variables->critical_level);
+        return command_call(ChargeCheck::variables->critical_level);
     }
     if(inp == "get low level") {
         return command_call(ChargeCheck::variables->low_level); 
