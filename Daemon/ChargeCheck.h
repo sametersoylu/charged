@@ -22,14 +22,14 @@ class ChargeCheckVars {
 // updated code to run on c++ standards.
 class ChargeCheck {
     public: 
-    static inline ChargeCheckVars *instance; 
+    static inline ChargeCheckVars *variables; 
 
     static int get_charge() {
         std::ifstream ifs("/sys/class/power_supply/BATT/capacity");
         char data[3]; 
         ifs >> data; 
         auto ret = std::stoi(std::string(data)); 
-        instance->charge = ret; 
+        variables->charge = ret; 
         return ret; 
     }
 
@@ -39,32 +39,32 @@ class ChargeCheck {
         ifs >> data; 
         auto res = std::string(data);
         res = res.substr(0, res.find("ing") + 3); 
-        instance->is_charging = res == "Charging"; 
+        variables->is_charging = res == "Charging"; 
         return {data}; 
     }
 
     static void if_critical(bool is_critical) {
-        if(is_critical && !instance->cnotified) {
+        if(is_critical && !variables->cnotified) {
             FunctionWrapper<void, std::string, std::string> f1(send_notify, "Critical Battery Level", "You have to plug your charger.");
             f1();
-            instance->cnotified = true; 
+            variables->cnotified = true; 
         }
     }
 
     static void if_low(bool is_low) {
-        if(is_low && !instance->lnotified) {
+        if(is_low && !variables->lnotified) {
             FunctionWrapper<void, std::string, std::string> f1(send_notify, "Low Battery Level", "Please plug your computer to the charger."); 
             f1();
-            instance->lnotified = true; 
+            variables->lnotified = true; 
         }
     }
 
     static void if_full() {
-        if(instance->is_full && !instance->inotified) {
-            std::string text = "Charge is " + std::to_string(instance->charge) + ", you can unplug your computer.";
+        if(variables->is_full && !variables->inotified) {
+            std::string text = "Charge is " + std::to_string(variables->charge) + ", you can unplug your computer.";
             FunctionWrapper<void, std::string, std::string> f1(send_notify, "Battery reached the full threshold", text.c_str()); 
             f1();
-            instance->inotified = true; 
+            variables->inotified = true; 
         }
     }
 
@@ -73,18 +73,18 @@ class ChargeCheck {
     }
 
     static void update() {
-        while(!instance->stop) {
+        while(!variables->stop) {
             using namespace std::chrono_literals;
-            instance->is_full = instance->charge >= instance->full_level; 
+            variables->is_full = variables->charge >= variables->full_level; 
 
-            if_critical(get_charge() <= instance->critical_level); 
-            instance->cnotified = !(instance->charge > instance->critical_level);
+            if_critical(get_charge() <= variables->critical_level); 
+            variables->cnotified = !(variables->charge > variables->critical_level);
 
-            if_low(get_charge() <= instance->low_level); 
-            instance->lnotified = !(instance->charge > instance->low_level);
+            if_low(get_charge() <= variables->low_level); 
+            variables->lnotified = !(variables->charge > variables->low_level);
 
             if_full();
-            instance->is_full = !(instance->charge < instance->full_level); 
+            variables->is_full = !(variables->charge < variables->full_level); 
 
             is_charging();
 

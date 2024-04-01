@@ -110,37 +110,41 @@ std::string handle_command(std::string inp) {
         return command_call(FunctionWrapper<std::string, std::string>(help_dispatch, std::move(res)));
     }
     if(inp == "get charge level") {
-        return std::to_string(ChargeCheck::instance->charge); 
+        return std::to_string(ChargeCheck::variables->charge); 
     }
     if(inp == "get critical level") {
-        return std::to_string(ChargeCheck::instance->critical_level);
+        return std::to_string(ChargeCheck::variables->critical_level);
     }
     if(inp == "get low level") {
-        return command_call(ChargeCheck::instance->low_level); 
+        return command_call(ChargeCheck::variables->low_level); 
     }
     if(inp == "get full level") {
-        return command_call(ChargeCheck::instance->full_level); 
+        return command_call(ChargeCheck::variables->full_level); 
     }
     if(inp == "is charging") {
         auto res = ChargeCheck::is_charging();
         return res.substr(0, res.find("ing") + 3) + "\n";
     }
     if(inp == "is full") {
-        return command_call(ChargeCheck::instance->is_full ? "Yes"_str : "No"_str);
+        return command_call(ChargeCheck::variables->is_full ? "Yes"_str : "No"_str);
     }
 #ifdef DEBUG
     if(inp == "get status cnotified") {
-        ss << (ChargeCheck::instance->cnotified ? "Yes" : "No") << std::endl;
+        ss << (ChargeCheck::variables->cnotified ? "Yes" : "No") << std::endl;
         return ss.str();
     }
     if(inp == "get status lnotified") {
-        ss << (ChargeCheck::instance->lnotified ? "Yes" : "No") << std::endl;
+        ss << (ChargeCheck::variables->lnotified ? "Yes" : "No") << std::endl;
+        return ss.str();
+    }
+    if(inp == "get status inotified") {
+        ss << (ChargeCheck::variables->inotified ? "Yes" : "No") << std::endl;
         return ss.str();
     }
 #endif
     if(inp == "stop") {
         FunctionWrapper<std::string, int> stop([](int dummy){
-            ChargeCheck::instance->stop = true;
+            ChargeCheck::variables->stop = true;
             std::cout << "Stop requested. Dying in 10 seconds." << std::endl; 
             return "Waiting for the subprocess to die.\n"_str;
         }, 1);
@@ -149,19 +153,19 @@ std::string handle_command(std::string inp) {
     if(inp.find("set critical level") != -1) {
         auto val = inp.substr(19);
         return set(val, [val]() {
-            ChargeCheck::instance->critical_level = std::stoi(val);
+            ChargeCheck::variables->critical_level = std::stoi(val);
         }, "critical");
     }
     if(inp.find("set low level") != -1) {
         auto val = inp.substr(14);
         return set(val, [val]() {
-            ChargeCheck::instance->low_level = std::stoi(val); 
+            ChargeCheck::variables->low_level = std::stoi(val); 
         }, "low"); 
     }
     if(inp.find("set full level") != -1) {
         auto val = inp.substr(15); 
         return set(val, [val]() {
-            ChargeCheck::instance->full_level = std::stoi(val); 
+            ChargeCheck::variables->full_level = std::stoi(val); 
         }, "full");
     }
     return "Command \"" + inp +  "\" not found.\n";
@@ -175,7 +179,7 @@ void get() {
     char arr[1024];
     int len = strlen(arr);
     std::string inp; 
-    while(!ChargeCheck::instance->stop) {
+    while(!ChargeCheck::variables->stop) {
         fd = open(fs.c_str(), O_RDONLY);
         read(fd, arr, 1024);
         close(fd);
@@ -249,7 +253,7 @@ int main(int argc, char **argv) {
     }
     if(f == 0) {
         ChargeCheckVars c = arghandler(argc, argv); 
-        ChargeCheck::instance = &c; 
+        ChargeCheck::variables = &c; 
         std::thread t(ChargeCheck::update);
         std::thread t2(get);
         t.join();
