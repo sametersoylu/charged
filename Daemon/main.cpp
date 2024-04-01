@@ -242,13 +242,20 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
 }
 
 int main(int argc, char **argv) {
-
-    ChargeCheckVars c = arghandler(argc, argv); 
-    ChargeCheck::instance = &c; 
-    std::thread t(ChargeCheck::update);
-    std::thread t2(get);
-    t.join();
-    t2.join();
-    
+    pid_t f = fork(); 
+    if(f == -1) {
+        std::cerr << "fork" << std::endl; 
+        exit(1); 
+    }
+    if(f == 0) {
+        ChargeCheckVars c = arghandler(argc, argv); 
+        ChargeCheck::instance = &c; 
+        std::thread t(ChargeCheck::update);
+        std::thread t2(get);
+        t.join();
+        t2.join();
+    } else {
+        exit(0);
+    }
     return 0;
 }

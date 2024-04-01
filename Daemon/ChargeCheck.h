@@ -25,7 +25,7 @@ class ChargeCheck {
     static inline ChargeCheckVars *instance; 
 
     static int get_charge() {
-        std::ifstream ifs("/sys/class/power_supply/BAT1/capacity");
+        std::ifstream ifs("/sys/class/power_supply/BATT/capacity");
         char data[3]; 
         ifs >> data; 
         auto ret = std::stoi(std::string(data)); 
@@ -34,7 +34,7 @@ class ChargeCheck {
     }
 
     static std::string is_charging() {
-        std::ifstream ifs("/sys/class/power_supply/BAT1/capacity");
+        std::ifstream ifs("/sys/class/power_supply/BATT/capacity");
         char data[14];
         ifs >> data; 
         auto res = std::string(data);
