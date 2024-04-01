@@ -63,14 +63,15 @@ int main(int argc, char **argv) {
         }
     }
 
-    std::string fs = "/tmp/check_charge";
-    mkfifo(fs.c_str(), 0666);
+
+    mkfifo("/tmp/charger", 0666);
+
     if(!is_daemon_active()) {
         std::cout << "Daemon is not active, please run \"charger\" (daemon) first then use this dispatcher." << std::endl; 
         return 1; 
     } 
-    send_cmd(fs.c_str(), arr); 
-    get_response(fs.c_str()); 
+    send_cmd("/tmp/charger", arr); 
+    get_response("/tmp/charger"); 
 
     return 0; 
 }

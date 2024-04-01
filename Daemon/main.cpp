@@ -24,7 +24,7 @@ std::string operator""_str(const char * str, size_t) {
     return {str}; 
 }
 
-std::string fullem_all(std::string fmt, std::string fill, char delim = '\n') {
+std::string fullem_all(std::string fmt, std::string fill) {
     std::string full = "";
     std::size_t start_pos = 0;
     while ((start_pos = fmt.find("{}", start_pos)) != std::string::npos) {
@@ -105,7 +105,7 @@ std::string set(std::string val, auto fp, std::string sub) {
 
 std::string handle_command(std::string inp) {
     std::stringstream ss; 
-    if(inp.find("help") != -1) {
+    if(inp.substr(0, 4) == "help") {
         std::string res = inp.substr(5); 
         return command_call(FunctionWrapper<std::string, std::string>(help_dispatch, std::move(res)));
     }
@@ -122,7 +122,7 @@ std::string handle_command(std::string inp) {
         return command_call(ChargeCheck::instance->full_level); 
     }
     if(inp == "is charging") {
-        auto res = ChargeCheck::isCharging();
+        auto res = ChargeCheck::is_charging();
         return res.substr(0, res.find("ing") + 3) + "\n";
     }
     if(inp == "is full") {
@@ -170,7 +170,7 @@ std::string handle_command(std::string inp) {
 
 void get() {
     int fd;
-    std::string fs = "/tmp/check_charge"; 
+    std::string fs = "/tmp/charger"; 
     mkfifo(fs.c_str(), 0666);
     char arr[1024];
     int len = strlen(arr);
@@ -242,6 +242,7 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
 }
 
 int main(int argc, char **argv) {
+
     ChargeCheckVars c = arghandler(argc, argv); 
     ChargeCheck::instance = &c; 
     std::thread t(ChargeCheck::update);
