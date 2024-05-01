@@ -202,7 +202,7 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
     std::vector<std::string> argList; 
     unsigned short cl = 0, ll = 0, fl = 0; 
     if(argc < 2) {
-        return {20, 25, 100}; 
+        return {20, 25, 100, ChargeCheck::is_charging_bool()}; 
     }
     for(int i = 1; i < argc; i++) {
         argList.emplace_back(argv[i]); 
@@ -242,7 +242,7 @@ ChargeCheckVars arghandler(int argc, char ** argv) {
     if(fl == 0) {
         fl = 100; 
     }
-    return {cl, ll, fl}; 
+    return  ChargeCheckVars { cl, ll, fl, ChargeCheck::is_charging_bool()}; 
 }
 
 int main(int argc, char **argv) {
